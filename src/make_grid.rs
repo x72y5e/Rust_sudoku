@@ -1,12 +1,12 @@
 use::std::collections::HashSet;
 //use std::{thread, time};
 use rand::seq::SliceRandom;
-use rand::thread_rng;
+use rand::{thread_rng, Rng};
 use ndarray::Array2;
 use permutohedron::heap_recursive;
 
 
-pub fn make_board() -> Array2<usize> {
+fn make_board() -> Array2<usize> {
     let mut board = Array2::zeros((9, 9));
 
     for i in 0..9 {
@@ -22,7 +22,7 @@ pub fn make_board() -> Array2<usize> {
     board
 }
 
-pub fn shuffle_row(mut board: Array2<usize>, n: usize) -> Array2<usize> {
+fn shuffle_row(mut board: Array2<usize>, n: usize) -> Array2<usize> {
     for i in 0..9 {
         board.row_mut(n)[i] = i + 1;
     }
@@ -82,8 +82,7 @@ fn try_permutations(mut board: Array2<usize>, mut n: usize) -> Array2<usize> {
 
     while n < 9 {
         for permutation in &permutations {
-            let this_permutation = permutation;
-            for (i, p) in this_permutation.iter().enumerate() {
+            for (i, p) in permutation.iter().enumerate() {
                 board[[n, i]] = *p;
             }
 
@@ -103,11 +102,26 @@ fn try_permutations(mut board: Array2<usize>, mut n: usize) -> Array2<usize> {
     board
 }
 
-pub fn make_sudoku(mut board: Array2<usize>) -> Array2<usize> {
+fn remove_nums(mut board: Array2<usize>, clues: usize) -> Array2<usize> {
+    let mut n = 81;
+    let mut rng = thread_rng();
+    while n > clues {
+        let i = rng.gen_range(0, 9);
+        let j = rng.gen_range(0, 9);
+        board[[i, j]] = 0;
+        let nonzeros: Vec<&usize> = board.iter().filter(|x| **x > 0).collect();
+        n = nonzeros.len();
+    }
+    board
+}
+
+
+pub fn make_sudoku(clues: usize) -> Array2<usize> {
+    let mut board = make_board();
     let mut best = 81;
     let mut n = 1;
 
-    while n < 7 {
+    while n < 8 {
         board = shuffle_row(board, n);
         let collisions = count_collisions(&board, n);
             if collisions < best {
@@ -121,5 +135,6 @@ pub fn make_sudoku(mut board: Array2<usize>) -> Array2<usize> {
             }
     }
 
-    try_permutations(board, n)
+    board = try_permutations(board, n);
+    remove_nums(board, clues)
 }
