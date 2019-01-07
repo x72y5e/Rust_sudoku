@@ -1,45 +1,13 @@
 use::std::collections::HashSet;
 use rand::seq::SliceRandom;
-use rand::{thread_rng, Rng};
+use rand::thread_rng;
 use ndarray::Array2;
 use permutohedron::heap_recursive;
-use std::{thread, time};
+use crate::make_grid::count_collisions;
 
-//use crate::make_grid::count_collisions;
-
-
-fn count_collisions(board: &Array2<usize>) -> usize {
-    let mut collisions = 0;
-
-    // columns
-    let mut all_nonzero: Vec<usize>;
-    for col in board.gencolumns() {
-        let all_nonzero: Vec<&usize> = col.iter().filter(|x| **x > 0).collect();
-        let unique_nonzero: HashSet<&usize> = all_nonzero.iter().cloned().collect();
-        collisions += all_nonzero.len() - unique_nonzero.len();
-    }
-
-    // 3x3 squares
-    for row_n in (0..9).step_by(3) {
-        for col_n in (0..9).step_by(3) {
-            let square = board.slice(s![row_n..row_n + 3,
-                                                                     col_n..col_n + 3]);
-            let present: Vec<&usize> = square.iter()
-                .filter(|x| **x != 0)
-                .collect();
-            let unique: HashSet<&usize> = square.iter()
-                .filter(|x| **x != 0)
-                .collect();
-            collisions += present.len() - unique.len();
-        }
-    }
-
-    collisions
-}
 
 pub fn search(mut board: Array2<usize>) -> Array2<usize> {
     let original_board: Array2<usize> = board.clone();
-    let mut rng = thread_rng();
     let mut n = 0;
     let full_set: HashSet<usize> = (1..10).collect();
     let mut n_resets = 0;
@@ -84,7 +52,7 @@ pub fn search(mut board: Array2<usize>) -> Array2<usize> {
                 row_solved = true;
                 if n > max_row {
                     max_row = n;
-                    println!("{}", max_row);
+                    println!("solving row {}...", max_row);
                 }
                 break
             }

@@ -1,26 +1,9 @@
 use::std::collections::HashSet;
-//use std::{thread, time};
 use rand::seq::SliceRandom;
 use rand::{thread_rng, Rng};
 use ndarray::Array2;
 use permutohedron::heap_recursive;
 
-
-fn make_board() -> Array2<usize> {
-    let mut board = Array2::zeros((9, 9));
-
-    for i in 0..9 {
-        board[[0, i]] = i + 1;
-    }
-
-    board
-        .row_mut(0)
-        .into_slice()
-        .expect("contiguous row")
-        .shuffle(&mut thread_rng());
-
-    board
-}
 
 fn shuffle_row(mut board: Array2<usize>, n: usize) -> Array2<usize> {
     for i in 0..9 {
@@ -35,15 +18,14 @@ fn shuffle_row(mut board: Array2<usize>, n: usize) -> Array2<usize> {
     board
 }
 
-pub fn count_collisions(board: &Array2<usize>, n: usize) -> usize {
+pub fn count_collisions(board: &Array2<usize>) -> usize {
     // n is the row we are up to
     let mut collisions = 0usize;
 
-    // TODO: change this function to use the lengths only, not difference / n, as in solv module
-    // columns
     for col in board.gencolumns() {
-        let present: HashSet<usize> = col.iter().filter(|x| **x != 0).cloned().collect();
-        collisions += (n + 1) - present.len();
+        let all_nonzero: Vec<&usize> = col.iter().filter(|x| **x > 0).collect();
+        let unique_nonzero: HashSet<&usize> = all_nonzero.iter().cloned().collect();
+        collisions += all_nonzero.len() - unique_nonzero.len();
     }
 
     // 3x3 squares
@@ -66,10 +48,23 @@ pub fn count_collisions(board: &Array2<usize>, n: usize) -> usize {
 
 pub fn display_board(board: &Array2<usize>) {
     println!();
+    let mut row_counter = 1;
     for row in board.genrows() {
-        println!("{:?}", row);
+        println!();
+        let mut col_counter = 1;
+        for number in row.iter() {
+            print!("{} ", number);
+            if col_counter % 3 == 0 {
+                print!(" ");
+            }
+            col_counter += 1;
+            }
+        if row_counter % 3 == 0 {
+            println!();
+        }
+        row_counter += 1;
     }
-    println!();
+    println!("\n");
 }
 
 fn try_permutations(mut board: Array2<usize>, mut n: usize) -> Array2<usize> {
@@ -86,10 +81,9 @@ fn try_permutations(mut board: Array2<usize>, mut n: usize) -> Array2<usize> {
                 board[[n, i]] = *p;
             }
 
-            let collisions = count_collisions(&board, n);
+            let collisions = count_collisions(&board);
             if collisions < best {
                 best = collisions;
-                println!("row {} best {}", n, best);
 
                 if best == 0 {
                     n += 1;
@@ -117,20 +111,22 @@ fn remove_nums(mut board: Array2<usize>, clues: usize) -> Array2<usize> {
 
 
 pub fn make_sudoku(clues: usize) -> Array2<usize> {
-    let mut board = make_board();
+    //let mut board = make_board();
+    let mut board = Array2::zeros((9, 9));
+    board = shuffle_row(board, 0);
     let mut best = 81;
     let mut n = 1;
 
     while n < 8 {
         board = shuffle_row(board, n);
-        let collisions = count_collisions(&board, n);
+        let collisions = count_collisions(&board);
             if collisions < best {
                 best = collisions;
-                println!("row {} best {}", n, best);
 
                 if best == 0 {
                     n += 1;
                     best = 81;
+                    println!("calculating row {}...", n);
                 }
             }
     }
