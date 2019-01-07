@@ -17,5 +17,4 @@ fn main() {
     display_board(&board);
     board = search(board);
     display_board(&board);
-    board = search(board);
 }

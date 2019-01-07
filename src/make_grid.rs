@@ -39,7 +39,7 @@ pub fn count_collisions(board: &Array2<usize>, n: usize) -> usize {
     // n is the row we are up to
     let mut collisions = 0usize;
 
-
+    // TODO: change this function to use the lengths only, not difference / n, as in solv module
     // columns
     for col in board.gencolumns() {
         let present: HashSet<usize> = col.iter().filter(|x| **x != 0).cloned().collect();
