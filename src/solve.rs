@@ -10,8 +10,6 @@ pub fn search(mut board: Array2<usize>) -> Array2<usize> {
     let original_board: Array2<usize> = board.clone();
     let mut n = 0;
     let full_set: HashSet<usize> = (1..10).collect();
-    let mut n_resets = 0;
-    let mut max_row = 0;
 
     while n < 9 {
 
@@ -50,10 +48,6 @@ pub fn search(mut board: Array2<usize>) -> Array2<usize> {
             if best == 0 {
                 n += 1;
                 row_solved = true;
-                if n > max_row {
-                    max_row = n;
-                    println!("solving row {}...", max_row);
-                }
                 break
             }
         }
@@ -61,9 +55,7 @@ pub fn search(mut board: Array2<usize>) -> Array2<usize> {
         if !row_solved {
             board = original_board.clone();
             n = 0;
-            n_resets += 1;
         }
     }
-    println!("found solution with {} resets", n_resets);
     board
 }

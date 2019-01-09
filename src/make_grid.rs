@@ -126,7 +126,7 @@ pub fn make_sudoku(clues: usize) -> Array2<usize> {
                 if best == 0 {
                     n += 1;
                     best = 81;
-                    println!("calculating row {}...", n);
+                    //println!("calculating row {}...", n);
                 }
             }
     }
